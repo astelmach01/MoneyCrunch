@@ -7,9 +7,10 @@ from alpha_vantage.techindicators import TechIndicators
 from selenium import webdriver
 from PIL import Image
 import cv2
+import os
 
 key = 'Z1UK6CGV0MLWS7VQ'
-symbol = "F"
+symbol = "TSLA"
 
 ts = TimeSeries(key=key, output_format='pandas')
 stonks, meta = ts.get_daily(symbol=symbol, outputsize='full')
@@ -180,27 +181,12 @@ x = location['x'] + 10
 y = location['y'] - 800
 w = size['width']
 h = size['height']
-width = x + w
-height = y + h
 
 im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
-im = im.crop((int(x) + 575, int(y + 850), int(width), int(height) - 150))
+im = im.crop((int(x) + 575, int(y + 850), int(x + w), int(y + h) - 150))
 # im.show()
 im.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
-
-img = cv2.imread('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
-hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-height, width, channels = img.shape
-lower_red = np.array([0, 120, 70])
-upper_red = np.array([10, 255, 255])
-mask1 = cv2.inRange(hsv, lower_red, upper_red)
-
-lower_red = np.array([170, 120, 70])
-upper_red = np.array([180, 255, 255])
-mask2 = cv2.inRange(hsv, lower_red, upper_red)
-
-mask1 = mask1 + mask2
-
+os.system("taskkill /im chrome.exe /f")
 
 # u can optimize this
 def loop(mask):
@@ -211,14 +197,36 @@ def loop(mask):
     return False
 
 
-if loop(mask1):
-    print("its negative")
+def analysis(divide):
+    im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+    width, height = im.size
+    im.crop((0, 0, width, height/divide)).save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+    img = cv2.imread('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    lower_red = np.array([0, 120, 70])
+    upper_red = np.array([10, 255, 255])
+    mask1 = cv2.inRange(hsv, lower_red, upper_red)
 
-# center the element so image takes it evenly every time and split it up between highs and lows
-cv2.imshow("Image", img)
-cv2.imshow("Mask", mask1)
+    lower_red = np.array([170, 120, 70])
+    upper_red = np.array([180, 255, 255])
+    mask2 = cv2.inRange(hsv, lower_red, upper_red)
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    mask1 = mask1 + mask2
+
+    if loop(mask1):
+        print("its negative")
+
+    # center the element so image takes it evenly every time and split it up between highs and lows
+    cv2.imshow("Image", img)
+    cv2.imshow("Mask", mask1)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+for x in range(3):
+    temp = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+    analysis(x + 1)
+    temp.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 
 print("Time elapsed: ", time.process_time())
