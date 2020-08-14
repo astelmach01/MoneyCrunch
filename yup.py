@@ -10,7 +10,7 @@ import cv2
 import os
 
 key = 'Z1UK6CGV0MLWS7VQ'
-symbol = "TSLA"
+symbol = "F"
 
 ts = TimeSeries(key=key, output_format='pandas')
 stonks, meta = ts.get_daily(symbol=symbol, outputsize='full')
@@ -188,6 +188,7 @@ im = im.crop((int(x) + 575, int(y + 850), int(x + w), int(y + h) - 150))
 im.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 os.system("taskkill /im chrome.exe /f")
 
+
 # u can optimize this
 def loop(mask):
     for q in mask:
@@ -197,10 +198,9 @@ def loop(mask):
     return False
 
 
-def analysis(divide):
+def analysis(left, top, right, bottom):
     im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
-    width, height = im.size
-    im.crop((0, 0, width, height/divide)).save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+    im.crop((left, top, right, bottom)).save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
     img = cv2.imread('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     lower_red = np.array([0, 120, 70])
@@ -224,9 +224,10 @@ def analysis(divide):
     cv2.destroyAllWindows()
 
 
-for x in range(3):
+prev_height = 0
+for x in range(3, 0, -1):
     temp = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
-    analysis(x + 1)
+    width, height = temp.size
+    analysis(0, prev_height, width, height // x)
+    prev_height = height // x
     temp.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
-
-print("Time elapsed: ", time.process_time())
