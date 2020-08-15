@@ -10,7 +10,7 @@ import cv2
 import os
 
 key = 'Z1UK6CGV0MLWS7VQ'
-symbol = "F"
+symbol = "AMZN"
 
 ts = TimeSeries(key=key, output_format='pandas')
 stonks, meta = ts.get_daily(symbol=symbol, outputsize='full')
@@ -184,10 +184,30 @@ h = size['height']
 
 im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 im = im.crop((int(x) + 575, int(y + 850), int(x + w), int(y + h) - 150))
-# im.show()
+im.show()
 im.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 os.system("taskkill /im chrome.exe /f")
 
+img = cv2.imread('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+lower_red = np.array([0, 0, 0])
+upper_red = np.array([0, 0, 0])
+mask1 = cv2.inRange(hsv, lower_red, upper_red)
+
+offset = 0
+
+test = mask1 > 0
+for x in test:
+    if x.any():
+        break
+    else:
+        offset += 1
+
+im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+width, height = im.size
+im.crop((0, offset, width, height)).save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+
+# do the opposite to remove white from bottom
 
 # u can optimize this
 def loop(mask):
@@ -216,7 +236,6 @@ def analysis(left, top, right, bottom):
     if loop(mask1):
         print("its negative")
 
-    # center the element so image takes it evenly every time and split it up between highs and lows
     cv2.imshow("Image", img)
     cv2.imshow("Mask", mask1)
 
