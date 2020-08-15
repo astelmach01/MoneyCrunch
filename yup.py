@@ -184,7 +184,7 @@ h = size['height']
 
 im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 im = im.crop((int(x) + 575, int(y + 850), int(x + w), int(y + h) - 150))
-im.show()
+# im.show()
 im.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 os.system("taskkill /im chrome.exe /f")
 
@@ -207,6 +207,7 @@ im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 width, height = im.size
 im.crop((0, offset, width, height)).save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 
+
 # do the opposite to remove white from bottom
 
 # u can optimize this
@@ -218,7 +219,11 @@ def loop(mask):
     return False
 
 
-def analysis(left, top, right, bottom):
+high, median, low = False, False, False
+
+
+def analysis(left, top, right, bottom, x):
+    global high, median, low
     im = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
     im.crop((left, top, right, bottom)).save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
     img = cv2.imread('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
@@ -234,10 +239,15 @@ def analysis(left, top, right, bottom):
     mask1 = mask1 + mask2
 
     if loop(mask1):
-        print("its negative")
+        if x == 3:
+            high = True
+        if x == 2:
+            median = True
+        if x == 1:
+            low = True
 
-    cv2.imshow("Image", img)
-    cv2.imshow("Mask", mask1)
+    # cv2.imshow("Image", img)
+    # cv2.imshow("Mask", mask1)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -245,8 +255,16 @@ def analysis(left, top, right, bottom):
 
 prev_height = 0
 for x in range(3, 0, -1):
+    if high:
+        print("high value is lower than current price")
+        break
+    if median:
+        print("median value is lower than current stock price")
+        break
     temp = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
     width, height = temp.size
-    analysis(0, prev_height, width, height // x)
+    analysis(0, prev_height, width, height // x, x)
     prev_height = height // x
     temp.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
+
+print(high, median, low)
