@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import time
 import numpy as np
 from alpha_vantage.timeseries import TimeSeries
 from alpha_vantage.techindicators import TechIndicators
@@ -8,6 +7,8 @@ from selenium import webdriver
 from PIL import Image
 import cv2
 import os
+import tkinter as tk
+
 
 key = 'Z1UK6CGV0MLWS7VQ'
 symbol = "AMZN"
@@ -61,8 +62,8 @@ for i in range(10, 101, 10):
 
 resistance = pd.Series(data=highpoints, index=highindexes)
 
-# resistance.plot()
-# support.plot()
+#resistance.plot()
+#support.plot()
 stonks.plot()
 
 m, b = np.polyfit(highindexes, highpoints, 1)
@@ -70,8 +71,8 @@ m, b = np.polyfit(highindexes, highpoints, 1)
 a, z = np.polyfit(lowindexes, lowpoints, 1)
 # m, b = np.polyfit(stonks.index,stonks.values, 1)
 # plt.plot(stonks.index, ((a + m) / 2) * stonks.index + ((b + z) / 2))
-# plt.plot(stonks.index, m * stonks.index + b)
-# plt.plot(stonks.index, a * stonks.index + z)
+plt.plot(stonks.index, m * stonks.index + b)
+plt.plot(stonks.index, a * stonks.index + z)
 plt.ylabel("Price ($)")
 plt.xlabel("Days")
 
@@ -89,9 +90,8 @@ plt.plot(ema50.index, ema50_m * ema50.index + ema50_b, label="50 Day Moving Aver
 plt.plot(ema200.index, ema200_m * ema200.index + ema200_b, label="200 Day Moving Average")
 plt.legend()
 
-# print(stonks.pct_change())
+#print(stonks.pct_change())
 
-# plot line for ema 50
 
 # where they cross
 negative50 = 0
@@ -104,13 +104,12 @@ contradictions = 0
 
 count = 1
 
-
 def calculate50(index, y):
     global count
     global negative50
     global positive50
     slope, y_intercept = np.polyfit(index, y, 1)
-    plt.plot(index, slope * index + y_intercept)
+    #plt.plot(index, slope * index + y_intercept)
 
     if slope < 0:
         negative50 += 1
@@ -134,7 +133,7 @@ def calculate200(index, y):
     global negative200
     global positive200
     slope, y_intercept = np.polyfit(index, y, 1)
-    plt.plot(index, slope * index + y_intercept)
+    #plt.plot(index, slope * index + y_intercept)
 
     if slope < 0:
         negative200 += 1
@@ -152,7 +151,11 @@ for x in range(25, 101, 25):
 print("negative200: " + str(negative200))
 print("positive200: " + str(positive200))
 
+ema50 = np.round(ema50, 2)
+ema200 = np.round(ema200, 2)
 intersection = np.intersect1d(ema50, ema200)
+# take into account low percent changes
+print(intersection)
 if len(intersection) > 0:
     if ema50_m > 0:
         print("golden cross")
@@ -160,6 +163,7 @@ if len(intersection) > 0:
         print("death cross")
 
 plt.show()
+
 
 if ema50_m > 0 and ema200_m > 0 and (a + m) / 2 > 0:
     print("Bullish pattern: recommended buy")
@@ -190,9 +194,8 @@ os.system("taskkill /im chrome.exe /f")
 
 img = cv2.imread('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-lower_red = np.array([0, 0, 0])
-upper_red = np.array([0, 0, 0])
-mask1 = cv2.inRange(hsv, lower_red, upper_red)
+black = np.array([0, 0, 0])
+mask1 = cv2.inRange(hsv, black, black)
 
 offset = 0
 
@@ -219,7 +222,7 @@ def loop(mask):
     return False
 
 
-high, median, low = False, False, False
+high, median, low = True, True, True
 
 
 def analysis(left, top, right, bottom, x):
@@ -240,14 +243,14 @@ def analysis(left, top, right, bottom, x):
 
     if loop(mask1):
         if x == 3:
-            high = True
+            high = False
         if x == 2:
-            median = True
+            median = False
         if x == 1:
-            low = True
+            low = False
 
-    # cv2.imshow("Image", img)
-    # cv2.imshow("Mask", mask1)
+    #cv2.imshow("Image", img)
+    #cv2.imshow("Mask", mask1)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -255,11 +258,8 @@ def analysis(left, top, right, bottom, x):
 
 prev_height = 0
 for x in range(3, 0, -1):
-    if high:
-        print("high value is lower than current price")
-        break
-    if median:
-        print("median value is lower than current stock price")
+    if not high:
+        print("not recommended buy")
         break
     temp = Image.open('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
     width, height = temp.size
@@ -267,4 +267,17 @@ for x in range(3, 0, -1):
     prev_height = height // x
     temp.save('C:\\Users\\Andrew Stelmach\\Desktop\\screenshot\\out.png')
 
-print(high, median, low)
+ema = ema50_m > 0 and ema200_m > 0
+if ema and high and median and low:
+    print("strong buy")
+
+elif ema and high and median:
+    print("recommended buy")
+
+elif high and median:
+    print("projections for increase in stock price; buy")
+
+else:
+    print("Not recommended buy")
+
+
